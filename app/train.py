@@ -5,14 +5,20 @@ from elasticsearch import Elasticsearch
 from datetime import datetime
 import numpy as np
 import pandas as pd
+import ssl, certifi, time
+
+## ssl
+context = ssl.create_default_context(cafile=certifi.where())
+context.check_hostname = False
+context.verify_mode = ssl.CERT_NONE
 
 model = SentenceTransformer('jhgan/ko-sroberta-multitask')
 
 # 지수로그 없애기 위해 소수점 6자리까지만
 np.set_printoptions(precision=6, suppress=True)
 
-# url = 'http://ec2-3-19-14-184.us-east-2.compute.amazonaws.com:9200/'
-url = 'http://localhost:9200/'
+url = 'https://34.64.69.252:9200/'
+# url = 'http://localhost:9200/'
 
 
 def embedding_csv(dataframe, member_id, we_id):
@@ -28,7 +34,8 @@ def embedding_csv(dataframe, member_id, we_id):
 
 
 def insert_chatdata_es(embedding_result_csv_name, member_id, we_id):
-    es = Elasticsearch(hosts=[url], basic_auth=('elastic', 'rlagksgh'))
+    es = Elasticsearch(hosts=[url], http_auth=('elastic', 'uYaVMCVhxfZe6IPAA7zT'), ssl_context=context, request_timeout=30, verify_certs=False)
+    # es = Elasticsearch(hosts=[url], basic_auth=('elastic', 'rlagksgh'))
     df = pd.read_csv(embedding_result_csv_name)
     index = "chat_bot"
     count = 0
@@ -48,3 +55,6 @@ def insert_chatdata_es(embedding_result_csv_name, member_id, we_id):
         count = count + 1
 
         es.index(index=index, body=doc)
+        # 1000개당 10초 쉬기.
+        if count % 1000 == 0:
+            time.sleep(10)
