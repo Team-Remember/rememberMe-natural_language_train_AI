@@ -7,7 +7,10 @@ import numpy as np
 import pandas as pd
 import ssl, certifi, time
 
+
 ## ssl
+import config
+
 context = ssl.create_default_context(cafile=certifi.where())
 context.check_hostname = False
 context.verify_mode = ssl.CERT_NONE
@@ -34,8 +37,7 @@ def embedding_csv(dataframe, member_id, we_id):
 
 
 def insert_chatdata_es(embedding_result_csv_name, member_id, we_id):
-    es = Elasticsearch(hosts=[url], http_auth=('elastic', 'uYaVMCVhxfZe6IPAA7zT'), ssl_context=context, request_timeout=30, verify_certs=False)
-    # es = Elasticsearch(hosts=[url], basic_auth=('elastic', 'rlagksgh'))
+    es = Elasticsearch(hosts=[config.ELASTIC_CONFIG['url']], http_auth=(config.ELASTIC_CONFIG['user'], config.ELASTIC_CONFIG['password']), ssl_context=context, request_timeout=30, verify_certs=False)
     df = pd.read_csv(embedding_result_csv_name)
     index = "chat_bot"
     count = 0
