@@ -1,12 +1,13 @@
-from tqdm import tqdm
-from sentence_transformers import SentenceTransformer
-from elasticsearch import Elasticsearch
-
+import ssl
+import time
 from datetime import datetime
+
+import certifi
 import numpy as np
 import pandas as pd
-import ssl, certifi, time
-
+from elasticsearch import Elasticsearch
+from sentence_transformers import SentenceTransformer
+from tqdm import tqdm
 
 ## ssl
 import config
@@ -19,9 +20,6 @@ model = SentenceTransformer('jhgan/ko-sroberta-multitask')
 
 # 지수로그 없애기 위해 소수점 6자리까지만
 np.set_printoptions(precision=6, suppress=True)
-
-url = 'https://34.64.69.252:9200/'
-# url = 'http://localhost:9200/'
 
 
 def embedding_csv(dataframe, member_id, we_id):
@@ -37,7 +35,9 @@ def embedding_csv(dataframe, member_id, we_id):
 
 
 def insert_chatdata_es(embedding_result_csv_name, member_id, we_id):
-    es = Elasticsearch(hosts=[config.ELASTIC_CONFIG['url']], http_auth=(config.ELASTIC_CONFIG['user'], config.ELASTIC_CONFIG['password']), ssl_context=context, request_timeout=30, verify_certs=False)
+    es = Elasticsearch(hosts=[config.ELASTIC_CONFIG['url']],
+                       http_auth=(config.ELASTIC_CONFIG['user'], config.ELASTIC_CONFIG['password']),
+                       ssl_context=context, request_timeout=30, verify_certs=False)
     df = pd.read_csv(embedding_result_csv_name)
     index = "chat_bot"
     count = 0
